@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
   // Trigger page build with a GET requst to the local page URL
   try {
-    const fetchResponse = await fetch(`http://localhost:3000/${slug}`)
+    const fetchResponse = await fetch(`${process.env.WEB_ORIGIN}/${slug}`)
     let { status } = fetchResponse
     // Send the API page data back with response
     res.status(status).json({ status, data })
