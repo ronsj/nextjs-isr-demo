@@ -80,7 +80,7 @@ export async function getStaticProps({ params, preview = false }) {
     return
   }
 
-  if (!data) {
+  if (!data?.page) {
     // `notFound` is an optional boolean value to allow the page to return a 404 status and page.
     return {
       notFound: true,
