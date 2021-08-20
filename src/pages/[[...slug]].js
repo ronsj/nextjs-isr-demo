@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { getPage } from '../lib/graphcms'
+import deleteStaticPageFiles from '../lib/deleteStaticPageFiles'
 
 export default function Slug({ preview, page }) {
   const router = useRouter()
@@ -65,7 +66,6 @@ export async function getStaticProps({ params, preview = false }) {
   // Special case: home page
   if (!params?.slug) {
     slug = 'home'
-    console.log('--- SLUG ---', slug)
   } else {
     slug = params.slug.join('/')
   }
@@ -74,13 +74,19 @@ export async function getStaticProps({ params, preview = false }) {
   // Check for page with matching slug
   try {
     data = await getPage(slug, preview)
-    console.log('--- DATA ---', data)
+    console.log('Data:', data)
   } catch (error) {
-    console.log('--- ERROR ---', error)
+    console.log(error)
     return
   }
 
   if (!data?.page) {
+    // In production, any pages deleted in the CMS are removed from the file system
+    // If not deleted immediately, any pages that are deleted will go away with the next app build/deploy
+    if (process.env.NODE_ENV === 'production') {
+      await deleteStaticPageFiles(slug)
+    }
+
     // `notFound` is an optional boolean value to allow the page to return a 404 status and page.
     return {
       notFound: true,
@@ -94,7 +100,7 @@ export async function getStaticProps({ params, preview = false }) {
     },
     // Next.js will attempt to re-generate the page:
     // - When a request comes in
-    // - At most once every 10 seconds
-    revalidate: 10,
+    // - At most once every 1 second(s)
+    revalidate: 1,
   }
 }
